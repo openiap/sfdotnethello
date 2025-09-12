@@ -1,9 +1,11 @@
 FROM dotnet9:latest
-LABEL name="DotNET Serverless Example"
 LABEL anonymous="true"
-LABEL idle_timeout="-1"
+LABEL name="DotNET Serverless Example"
+LABEL description="DotNET serverless hello world function"
 COPY . /app
 WORKDIR /app
 RUN dotnet build
-# Use dotnet to run the application instead of running the binary directly
+EXPOSE 3000
+#  here add the env command for dotnet
+# ENV NODE_ENV=production
 ENTRYPOINT ["dotnet", "/app/bin/Debug/net9.0/dotnettest.dll"]
