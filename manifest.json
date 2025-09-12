@@ -1,0 +1,12 @@
+{
+  "_type": "app",
+  "anonymous": true,
+  "cmd": "/app/bin/Debug/net9.0/dotnettest",
+  "distro": "dotnet9:latest",
+  "idle_timeout": -1,
+  "name": "DotNET Work Item Agent",
+  "non_web": true,
+  "port": 3000,
+  "pwd": "/app",
+  "repo": "sfdotnethello"
+}
