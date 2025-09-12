@@ -1,7 +1,6 @@
 FROM dotnet9:latest
-LABEL name="DotNET Work Item Agent"
+LABEL name="DotNET Serverless Example"
 LABEL anonymous="true"
-LABEL non_web="true"
 LABEL idle_timeout="-1"
 COPY . /app
 WORKDIR /app
