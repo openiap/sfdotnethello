@@ -1,54 +1,77 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
 
-class Program
-{
-    static void Main(string[] args)
+Console.WriteLine("Script start");
+
+// Create a minimal web host without complex configuration
+var host = new WebHostBuilder()
+    .UseKestrel(options =>
     {
-        try
+        options.ListenAnyIP(3000);
+    })
+    .ConfigureServices(services =>
+    {
+        services.AddRouting();
+        services.AddCors(options =>
         {
-            string logFile = "/tmp/dotnet_output.log";
-            
-            // Write to both console and file
-            string[] messages = {
-                "=== .NET Hello World Application ===",
-                $"Current time: {DateTime.Now}",
-                $"Environment: {Environment.OSVersion}",
-                $"Runtime version: {Environment.Version}",
-                $"Current directory: {Environment.CurrentDirectory}",
-                $"Command line: {Environment.CommandLine}",
-                $"Args count: {args.Length}"
-            };
-            
-            foreach (var message in messages)
+            options.AddDefaultPolicy(builder =>
             {
-                Console.WriteLine(message);
-                File.AppendAllText(logFile, message + "\n");
-            }
-            
-            for (int i = 0; i < args.Length; i++)
-            {
-                string argMessage = $"Arg[{i}]: {args[i]}";
-                Console.WriteLine(argMessage);
-                File.AppendAllText(logFile, argMessage + "\n");
-            }
-            
-            string successMessage = "Application completed successfully!";
-            Console.WriteLine(successMessage);
-            File.AppendAllText(logFile, successMessage + "\n");
-            
-            Environment.Exit(0);
-        }
-        catch (Exception ex)
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+    })
+    .Configure(app =>
+    {
+        app.UseCors();
+        app.UseRouting();
+        
+        app.UseEndpoints(endpoints =>
         {
-            string errorMessage = $"ERROR: {ex.Message}\nStack trace: {ex.StackTrace}";
-            Console.WriteLine(errorMessage);
-            try
-            {
-                File.AppendAllText("/tmp/dotnet_error.log", errorMessage + "\n");
-            }
-            catch { /* ignore file write errors */ }
-            Environment.Exit(1);
-        }
-    }
+            endpoints.MapGet("/", HandleRequest);
+            endpoints.MapPost("/", HandleRequest);
+            endpoints.Map("/{**path}", HandleRequest);
+        });
+    })
+    .Build();
+
+Console.WriteLine("Server created");
+Console.WriteLine("Server listening callback");
+Console.WriteLine("Server running on 0.0.0.0:3000");
+
+async Task<IResult> HandleRequest(HttpContext context)
+{
+    var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    var method = context.Request.Method;
+    var path = context.Request.Path.Value ?? "/";
+    
+    Console.WriteLine($"Request received: {method} {path} from {clientIp}");
+    
+    var dt = DateTime.Now;
+    var version = Environment.GetEnvironmentVariable("SF_TAG") ?? "latest";
+    
+    var responseData = new
+    {
+        message = "Hello from .NET",
+        dt = dt.ToString("o"), // ISO 8601 format
+        version = version
+    };
+    
+    return Results.Json(responseData);
+}
+
+try
+{
+    await host.RunAsync();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Server error: {ex.Message}");
 }
