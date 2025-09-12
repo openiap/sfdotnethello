@@ -8,4 +8,4 @@ RUN dotnet build
 EXPOSE 3000
 #  here add the env command for dotnet
 # ENV NODE_ENV=production
-ENTRYPOINT ["dotnet", "/app/bin/Debug/net9.0/dotnettest.dll"]
+ENTRYPOINT ["/app/bin/Debug/net9.0/dotnettest"]
