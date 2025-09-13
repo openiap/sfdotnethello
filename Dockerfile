@@ -12,4 +12,4 @@ RUN dotnet build dotnettest.csproj
 # ENV DOTNET_ROOT=/usr/share/dotnet
 # ENV PATH=$PATH:/usr/share/dotnet
 
-ENTRYPOINT ["dotnet", "/app/bin/Debug/net9.0/dotnettest"]
+ENTRYPOINT ["/app/bin/Debug/net9.0/dotnettest"]
