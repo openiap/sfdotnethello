@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 Console.WriteLine("Script start");
 
-// Create a minimal web host without complex configuration
 var host = new WebHostBuilder()
     .UseKestrel(options =>
     {
@@ -32,12 +31,12 @@ var host = new WebHostBuilder()
     {
         app.UseCors();
         app.UseRouting();
-        
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapGet("/", HandleRequest);
             endpoints.MapPost("/", HandleRequest);
-            endpoints.Map("/{**path}", HandleRequest);
+            endpoints.Map("{**path}", HandleRequest);
         });
     })
     .Build();
@@ -46,25 +45,26 @@ Console.WriteLine("Server created");
 Console.WriteLine("Server listening callback");
 Console.WriteLine("Server running on 0.0.0.0:3000");
 
-async Task<IResult> HandleRequest(HttpContext context)
+static async Task HandleRequest(HttpContext context)
 {
     var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     var method = context.Request.Method;
     var path = context.Request.Path.Value ?? "/";
-    
+
     Console.WriteLine($"Request received: {method} {path} from {clientIp}");
-    
-    var dt = DateTime.Now;
+
+    var dt = DateTime.UtcNow; // UTC plays nicer with "o"
     var version = Environment.GetEnvironmentVariable("SF_TAG") ?? "latest";
-    
+
     var responseData = new
     {
         message = "Hello from .NET",
-        dt = dt.ToString("o"), // ISO 8601 format
-        version = version
+        dt = dt.ToString("o"), // ISO 8601
+        version
     };
-    
-    return Results.Json(responseData);
+
+    context.Response.ContentType = "application/json; charset=utf-8";
+    await context.Response.WriteAsync(JsonSerializer.Serialize(responseData));
 }
 
 try
